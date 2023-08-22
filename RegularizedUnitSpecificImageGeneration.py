@@ -73,7 +73,7 @@ class RegularizedClassSpecificImageGeneration():
             # Forward
             output = self.model(self.processed_image)
             # Target specific class
-            class_loss = -output[0, self.target_class]
+            class_loss = -output[0, self.target_class].mean()
 
             if i in np.linspace(0, iterations, 10, dtype=int):
                 print('Iteration:', str(i), 'Loss',

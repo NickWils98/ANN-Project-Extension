@@ -1,53 +1,13 @@
-import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision.models as models
-import torchvision.transforms as transforms
-from torchcam.utils import overlay_mask
-from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader
-import os
-from torchcam.methods import ScoreCAM
-import matplotlib.pyplot as plt
-from torchvision.transforms.functional import to_pil_image
 import warnings
-import numpy as np
-
 import torch
-from torchvision import transforms
-from torch.optim import SGD
-import numpy as np
-from PIL import Image
+from ScoreCam import score_cam
+from ModelFunctions import *
 import os
-# Function to load datasets and data loaders
-def load_datasets_and_loaders(data_dir, batch_size):
-    # transform = transforms.Compose([
-    #     transforms.Resize(256),
-    #     transforms.CenterCrop(224),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    # ])
-    transform = models.EfficientNet_B0_Weights.IMAGENET1K_V1.transforms()
 
-    train_dataset = ImageFolder(os.path.join(data_dir, "train"), transform=transform)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+DIRECTORYMODEL = os.path.join("fully-supervised", "bs16_lr001_epochs10")
 
-    val_dataset = ImageFolder(os.path.join(data_dir, "validation"), transform=transform)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-
-    return train_loader, val_loader, val_dataset
-
-# Function to create and configure the model
-def create_model(num_classes):
-    model = models.efficientnet_b0(pretrained='imagenet')
-
-    num_ftrs = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(num_ftrs, num_classes)
-
-    for param in model.parameters():
-        param.requires_grad = True
-
-    return model
 
 
 # Function to train the model
@@ -88,8 +48,7 @@ def train_model(model, train_loader, val_loader, num_epochs, device, optimizer, 
 
         val_accuracy = evaluate_model(model, val_loader, device)
         val_accuracies.append(val_accuracy)
-
-        model_save_path = os.path.join('full_32b_10e_001lr', f'model{epoch}.pth')
+        model_save_path = os.path.join(DIRECTORYMODEL, f'model{epoch}.pth')
         torch.save(model.state_dict(), model_save_path)
     return train_accuracies, val_accuracies, train_losses
 
@@ -113,122 +72,45 @@ def evaluate_model(model, val_loader, device):
     return accuracy
 
 
-def score_cam(model_path, val_loader, device, image_list, num_classes):
-    # Load pre-trained EfficientNet-B0 model
-    model = models.efficientnet_b0(pretrained='imagenet')
-    counter = 0
-    # Modify the classifier for rotation classification (4 classes)
-    num_ftrs = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(num_ftrs, num_classes)
-    model.load_state_dict(torch.load(model_path))
-    model.eval()
-    model.to(device)
-    for batch_rotated_images, labels in val_loader:
-        labelcounter = 0
-        for img in batch_rotated_images:
-            if counter in image_list:
-                image_list.remove(counter)
-                scorecam = ScoreCAM(model, target_layer=model.features[8])
-                # Choose an image from the validation dataset for visualization
-
-                image = img.unsqueeze(0).to(device)
-
-                # Get the class index with the highest probability
-                with torch.no_grad():
-                    outputs = model(image)
-                    x, predicted_class = torch.max(outputs.data, 1)
-                print(f'index: {counter}, true label: {labels[labelcounter]}, guess: {predicted_class.item()}')
-
-                # Forward the image through the model to hook into the convolutional features
-                # Generate the heatmap using Score-CAM
-
-                heatmap = scorecam(predicted_class.item(), predicted_class)  # Use .item() to get the class index as a scalar
-                # Overlayed on the image
-                for name, cam in zip(scorecam.target_names, heatmap):
-                    result = overlay_mask(to_pil_image(img), to_pil_image(cam.squeeze(0), mode='F'), alpha=0.5)
-                    plt.imshow(result)
-                    plt.axis('off')
-                    plt.title(f'{counter}')
-                    plot_save_path = f'pertubation_full_{counter}.png'
-                    plt.savefig(plot_save_path, dpi=300)
-                    plt.show()
-                # Once you're finished, clear the hooks on your model
-                scorecam.remove_hooks()
-                if len(image_list)==0:
-                    return
-            counter += 1
-            labelcounter += 1
 
 
-def plot_metrics(train_accuracies, val_accuracies,train_losses, batch_size, learning_rate, num_epochs):
-    epochs = np.arange(1, len(train_accuracies) + 1)
 
-    fig, ax1 = plt.subplots(figsize=(10, 6))
-
-    ax1.set_xlabel('Epochs')
-    ax1.set_ylabel('Loss', color='tab:red')
-    ax1.plot(epochs, train_losses, label='Training Loss', color='tab:red', linewidth=2)
-    ax1.tick_params(axis='y', labelcolor='tab:red')
-
-    ax2 = ax1.twinx()
-    ax2.set_ylabel('Accuracy', color='tab:blue')
-    ax2.plot(epochs, train_accuracies, label='Training Accuracy', color='tab:blue', linestyle='dashed', marker='o')
-    ax2.plot(epochs, val_accuracies, label='Validation Accuracy', color='tab:orange', linestyle='dashed', marker='o')
-    ax2.tick_params(axis='y', labelcolor='tab:blue')
-
-    # fig.tight_layout()
-    plt.title(
-        f'Metrics During Training\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {num_epochs}',
-        fontsize=16)
-    plt.legend(loc='upper left', fontsize=12)
-    plt.grid(True)
-
-    # Save the plot as a PNG image
-    plot_save_path = f'metrics_plot_bs{batch_size}_lr{learning_rate}_epochs{num_epochs}.png'
-    plt.savefig(plot_save_path, dpi=300)
-    print(f"Metrics plot saved as {plot_save_path}")
-    plt.show()
-
-
-def plot_accuracies(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs):
-    epochs = np.arange(1, len(train_accuracies) + 1)
-    plt.plot(epochs, train_accuracies, label='Training Accuracy')
-    plt.plot(epochs, val_accuracies, label='Validation Accuracy')
-    plt.plot(epochs, train_losses, label='Training Losses')
-    plt.xlabel('Epochs')
-    plt.ylabel('Accuracy')
-    plt.title(f'Training and Validation Accuracies\nBatch Size: {batch_size}, Learning Rate: {learning_rate}, Epochs: {num_epochs}')
-    plt.legend()
-    plt.show()
 
 
 
 if __name__ == '__main__':
+
     warnings.filterwarnings("ignore")
 
-    data_dir = f'.\\15SceneData\\'
+    data_dir = f'15SceneData'
     num_classes = 15
-
-    batch_size = 32
-    num_epochs = 5
+    batch_size = 16
+    num_epochs = 10
     learning_rate = 0.001
+    num_fc_layers = 0
+    fc_hidden_units = 256
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
 
-    train_loader, val_loader, val_dataset = load_datasets_and_loaders(data_dir, batch_size)
-    model = create_model(num_classes)
+    train_loader, val_loader = load_datasets_in_loaders(data_dir, batch_size)
+    model = create_model(num_classes, )
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    train_accuracies, val_accuracies, train_losses = train_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
-    plot_metrics(train_accuracies, val_accuracies,train_losses, batch_size, learning_rate, num_epochs)
+    # train_accuracies, val_accuracies, train_losses = train_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
 
+    # write_metrics(train_accuracies, val_accuracies, train_losses, DIRECTORYMODEL)
     #
-    # model_path = os.path.join('full_32b_10e_001lr', f'model{12}.pth')
-    # score_cam(model_path, val_loader, device, [0,1,2,3,4,5,6,7,8,9], num_classes)
-    # plot_accuracies(train_accuracies, val_accuracies,train_losses, batch_size, learning_rate, num_epochs)
+    # plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs,num_fc_layers, DIRECTORYMODEL)
+    #
+    # best_epoch_val = max(val_accuracies)
+    # best_epoch = val_accuracies.index(best_epoch_val)
+    #
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
+    # score_cam(model_path, val_loader, device, [0,100,200,300,400,500,600,700,800,900], num_classes, DIRECTORYMODEL)
 
     # # For each model, repeat the following steps
     # model_name ='supervised'
@@ -335,7 +217,35 @@ if __name__ == '__main__':
     # plt.axis('off')
     # plt.title(f'Inverted Image for Filter {selected_filter}')
     # plt.show()
+    model_path = os.path.join(DIRECTORYMODEL, f'model{6}.pth')
+    #
+    model.load_state_dict(torch.load(model_path), strict=True)
+    model.eval()
+    model.to('cpu')
 
+    import torch
+    import torch.nn as nn
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Select the last convolutional layer and the corresponding SiLU activation layer
+    conv_layer = model.features[8][1]
+    # Get the weights of the selected convolutional layer
+    conv_weights = conv_layer.weight.data
+
+    # Sum up the weights along each filter
+    filter_weights_sum = conv_weights.view(conv_weights.size(0), -1).sum(dim=1)
+
+    indexed_list = list(enumerate(filter_weights_sum))  # Create a list of (index, value) pairs
+    sorted_indexed_list = sorted(indexed_list, key=lambda x: x[1], reverse=True)  # Sort by value in descending order
+    top_filters_indices = [index for index, _ in sorted_indexed_list[:5]]  # Get the indexes of the first 5 elements
+
+    class Identity(nn.Module):
+        def __init__(self):
+            super(Identity, self).__init__()
+
+        def forward(self, x):
+            return x
     import os
     import numpy as np
     from PIL import Image, ImageFilter
@@ -349,6 +259,80 @@ if __name__ == '__main__':
     from RegularizedUnitSpecificImageGeneration import RegularizedClassSpecificImageGeneration
 
     target_class = 0  # Flamingo
-    pretrained_model = model
-    csig = RegularizedClassSpecificImageGeneration(pretrained_model, 7)
-    csig.generate()
+    newmodel = torch.nn.Sequential(*(list(model.children())[:-2]))
+
+    # print(newmodel)
+    pretrained_model = newmodel
+    csig = RegularizedClassSpecificImageGeneration(pretrained_model, top_filters_indices[0])
+    image = csig.generate()
+    plt.imshow(image.to("cpu"))
+    # plt.imshow(np.transpose(image[0], (1, 2, 0)))
+    plt.axis('off')
+    plt.title('Combined Top 5 Filters')
+    plt.show()
+
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{6}.pth')
+    #
+    # model.load_state_dict(torch.load(model_path))
+    # model.eval()
+    # model.to('cpu')
+    #
+    # import torch
+    # import torch.nn as nn
+    # import numpy as np
+    # import matplotlib.pyplot as plt
+    #
+    # # Select the last convolutional layer and the corresponding SiLU activation layer
+    # conv_layer = model.features[8][0]
+    # silu_layer = model.features[8][2]
+    #
+    # # Get the weights of the selected convolutional layer
+    # conv_weights = conv_layer.weight.data
+    #
+    # # Sum up the weights along each filter
+    # filter_weights_sum = conv_weights.view(conv_weights.size(0), -1).sum(dim=1)
+    #
+    # # Get indices of filters with highest weights
+    # num_top_filters = 5
+    #
+    # top_filters_indices = torch.argsort(filter_weights_sum, descending=True)[:num_top_filters]
+    #
+    #
+    # # Inversion algorithm
+    # def invert_image(model, layer, filter_indices, num_iterations=100, lr=0.1):
+    #     synthesized_image = torch.randn(1, 3, 255, 255, requires_grad=True)
+    #
+    #     optimizer = torch.optim.Adam([synthesized_image], lr=lr)
+    #
+    #     for i in range(num_iterations):
+    #         optimizer.zero_grad()
+    #
+    #         # Forward pass through the model to the specified layer
+    #         x = synthesized_image
+    #         for idx, module in enumerate(model.features[0:9]):
+    #             x = module(x)
+    #             if idx == layer:
+    #                 break
+    #
+    #         # Get the output of the SiLU activation
+    #         activation_output = x[0, filter_indices]
+    #
+    #         # Maximize the mean activation of the selected filters
+    #         loss = -torch.mean(activation_output)
+    #         loss.backward()
+    #
+    #         optimizer.step()
+    #
+    #     return synthesized_image.detach().numpy()
+    #
+    # # Generate synthetic images for the selected filters
+    # synthetic_images = []
+    # synthesized_image = invert_image(model, 8, top_filters_indices)
+    # # for idx in top_filters_indices:
+    # #     synthetic_images.append(synthesized_image)
+    #
+    # # Display the synthetic images
+    # plt.imshow(np.transpose(synthesized_image[0], (1, 2, 0)))
+    # plt.axis('off')
+    # plt.title('Combined Top 5 Filters')
+    # plt.show()
