@@ -49,7 +49,7 @@ def score_cam_batch(model, model_path, val_loader, device, image_list, plot_path
                 with torch.no_grad():
                     outputs = model(image)
                     x, predicted_class = torch.max(outputs.data, 1)
-                print(f'index: {counter}, true label: {labels[counter]}, guess: {predicted_class.item()}')
+                print(f'index: {counter}, true label: {labels[counter][batch_nr]}, guess: {predicted_class.item()}')
 
                 # Forward the image through the model to hook into the convolutional features
                 # Generate the heatmap using Score-CAM
