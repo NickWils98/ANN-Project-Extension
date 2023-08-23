@@ -46,14 +46,14 @@ class RotationDataset(torch.utils.data.Dataset):
 
 
 num_classes = 4
-batch_size = 16
+batch_size = 8
 num_epochs = 10
-learning_rate = 0.001
-num_fc_layers = 1
+learning_rate = 0.0005
+num_fc_layers = 0
 fc_hidden_units = 256
 
-# DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
-DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
+DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
+# DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
 
 
 
