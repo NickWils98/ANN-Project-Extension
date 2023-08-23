@@ -1,4 +1,7 @@
-model_path = os.path.join(DIRECTORYMODEL, f'model{6}.pth')
+
+if __name__ == '__main__':
+
+    model_path = os.path.join(DIRECTORYMODEL, f'model{6}.pth')
 
     model.load_state_dict(torch.load(model_path))
     model.eval()

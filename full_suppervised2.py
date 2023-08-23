@@ -62,8 +62,8 @@ def train_model(model, train_loader, val_loader, num_epochs, device, optimizer, 
 
         val_accuracy = evaluate_model(model, val_loader, device)
         val_accuracies.append(val_accuracy)
-        model_save_path = os.path.join(DIRECTORYMODEL, f'model{epoch}.pth')
-        torch.save(model.state_dict(), model_save_path)
+        # model_save_path = os.path.join(DIRECTORYMODEL, f'model{epoch}.pth')
+        # torch.save(model.state_dict(), model_save_path)
     return train_accuracies, val_accuracies, train_losses
 
 # Function to evaluate the model
@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
     data_dir = f'15SceneData'
     num_classes = 15
-    batch_size = 16
+    batch_size = 32
     num_epochs = 10
     learning_rate = 0.001
     num_fc_layers = 0
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     # train_accuracies, val_accuracies, train_losses = train_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
 
     # write_metrics(train_accuracies, val_accuracies, train_losses, DIRECTORYMODEL)
-    #
+
     # plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs,num_fc_layers, DIRECTORYMODEL)
     #
     # best_epoch_val = max(val_accuracies)
@@ -119,24 +119,24 @@ if __name__ == '__main__':
 
     model_path = os.path.join(DIRECTORYMODEL, f'model{6}.pth')
 
-    model.load_state_dict(torch.load(model_path), strict=True)
+    model.load_state_dict(torch.load(model_path))
     model.eval()
 
-    # Select the last convolutional layer and the corresponding SiLU activation layer
-    conv_layer = model.features[8][1]
-    # Get the weights of the selected convolutional layer
-    conv_weights = conv_layer.weight.data
+    # # Select the last convolutional layer and the corresponding SiLU activation layer
+    # conv_layer = model.features[8][0]
+    # # Get the weights of the selected convolutional layer
+    # conv_weights = conv_layer.weight.data
+    #
+    # # Sum up the weights along each filter
+    # filter_weights_sum = conv_weights.view(conv_weights.size(0), -1).sum(dim=1)
+    #
+    # indexed_list = list(enumerate(filter_weights_sum))
+    # sorted_indexed_list = sorted(indexed_list, key=lambda x: x[1], reverse=True)
+    # top_filters_indices = [index for index, _ in sorted_indexed_list[:5]]
 
-    # Sum up the weights along each filter
-    filter_weights_sum = conv_weights.view(conv_weights.size(0), -1).sum(dim=1)
-
-    indexed_list = list(enumerate(filter_weights_sum))
-    sorted_indexed_list = sorted(indexed_list, key=lambda x: x[1], reverse=True)
-    top_filters_indices = [index for index, _ in sorted_indexed_list[:5]]
-
-    newmodel = torch.nn.Sequential(*(list(model.children())[:-2]))
-
-    csig = RegularizedClassSpecificImageGeneration(newmodel, top_filters_indices)
-    csig.generate()
+    # newmodel = torch.nn.Sequential(*(list(model.children())[:-2]))
+    for i in range(16):
+        csig = RegularizedClassSpecificImageGeneration(model, i)
+        csig.generate()
 
 

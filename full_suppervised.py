@@ -90,7 +90,7 @@ if __name__ == '__main__':
     print(device)
 
     train_loader, val_loader = load_datasets_in_loaders(data_dir, batch_size)
-    model = create_model(num_classes, )
+    model = create_model(num_classes,num_fc_layers, fc_hidden_units)
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()

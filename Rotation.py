@@ -46,14 +46,14 @@ class RotationDataset(torch.utils.data.Dataset):
 
 
 num_classes = 4
-batch_size = 8
+batch_size = 16
 num_epochs = 10
 learning_rate = 0.001
-num_fc_layers = 0
+num_fc_layers = 1
 fc_hidden_units = 256
 
-DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
-# DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
+# DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
+DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
 
 
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     print(device)
 
     train_loader, val_loader = load_datasets_in_loaders(data_dir, batch_size, RotationDataset)
-    model = create_model(num_classes)
+    model = create_model(num_classes, num_fc_layers, fc_hidden_units)
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()

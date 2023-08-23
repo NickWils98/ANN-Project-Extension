@@ -170,7 +170,7 @@ def train_rotation_model(mode, train_loader, val_loader, num_epochs, device, opt
         val_accuracy = evaluate_rotation_model(model, val_loader, device)
         val_accuracies.append(val_accuracy)
 
-        model_save_path = os.path.join('pertubation', f'pertubation_model{epoch}.pth')
+        model_save_path = os.path.join('perturbation', f'pertubation_model{epoch}.pth')
         torch.save(model.state_dict(), model_save_path)
     return train_accuracies, val_accuracies, train_losses
 
@@ -320,7 +320,7 @@ if __name__ == '__main__':
     # train_accuracies, val_accuracies, train_losses = train_rotation_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
     # plot_metrics(train_accuracies, val_accuracies,train_losses, batch_size, learning_rate, num_epochs)
 
-    model_path = os.path.join('pertubation', f'pertubation_model{9}.pth')
+    model_path = os.path.join('perturbation', f'pertubation_model{9}.pth')
     score_cam(model_path, val_loader, device, [0,1,2,3,4,5,6,7,8,9], num_classes)
     # plot_accuracies(train_accuracies, val_accuracies,train_losses, batch_size, learning_rate, num_epochs)
 

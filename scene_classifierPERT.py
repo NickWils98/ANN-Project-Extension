@@ -226,7 +226,7 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, val_loader, val_dataset = load_datasets_and_loaders(data_dir, batch_size)
-    rotation_model_path = os.path.join('pertubation', f'pertubation_model{9}.pth')
+    rotation_model_path = os.path.join('perturbation', f'pertubation_model{9}.pth')
     model = load_model(rotation_model_path, num_classes)
     model.to(device)
 

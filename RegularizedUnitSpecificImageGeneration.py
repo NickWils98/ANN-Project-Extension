@@ -165,6 +165,19 @@ def preprocess_and_blur_image(pil_im, resize_im=True, blur_rad=None):
 
 if __name__ == '__main__':
     target_class = 0  # Flamingo
-    pretrained_model = models.vgg19(pretrained=True)
-    csig = RegularizedClassSpecificImageGeneration(pretrained_model, target_class)
-    csig.generate()
+    pretrained_model = models.efficientnet_b0(pretrained=True)
+    conv_layer = pretrained_model.features[8][0]
+    # Get the weights of the selected convolutional layer
+    conv_weights = conv_layer.weight.data
+
+    # Sum up the weights along each filter
+    filter_weights_sum = conv_weights.view(conv_weights.size(0), -1).sum(dim=1)
+
+    indexed_list = list(enumerate(filter_weights_sum))
+    sorted_indexed_list = sorted(indexed_list, key=lambda x: x[1], reverse=True)
+    top_filters_indices = [index for index, _ in sorted_indexed_list[:5]]
+
+    newmodel = torch.nn.Sequential(*(list(pretrained_model.children())[:-2]))
+
+    csig = RegularizedClassSpecificImageGeneration(newmodel, 50)
+    csig.generate(iterations=500)
