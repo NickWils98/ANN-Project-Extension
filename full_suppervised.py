@@ -6,8 +6,15 @@ from ScoreCam import score_cam
 from ModelFunctions import *
 import os
 
-DIRECTORYMODEL = os.path.join("fully-supervised", "bs16_lr001_epochs10")
+num_classes = 15
+batch_size = 32
+num_epochs = 10
+learning_rate = 0.0005
+num_fc_layers = 2
+fc_hidden_units = 256
 
+# DIRECTORYMODEL = os.path.join("fully-supervised", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
+DIRECTORYMODEL = os.path.join("fully-supervised", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
 
 
 # Function to train the model
@@ -72,23 +79,12 @@ def evaluate_model(model, val_loader, device):
     return accuracy
 
 
-
-
-
-
-
-
 if __name__ == '__main__':
 
     warnings.filterwarnings("ignore")
 
     data_dir = f'15SceneData'
-    num_classes = 15
-    batch_size = 16
-    num_epochs = 10
-    learning_rate = 0.001
-    num_fc_layers = 0
-    fc_hidden_units = 256
+
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -100,17 +96,19 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    # train_accuracies, val_accuracies, train_losses = train_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
+    train_accuracies, val_accuracies, train_losses = train_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
 
-    # write_metrics(train_accuracies, val_accuracies, train_losses, DIRECTORYMODEL)
-    #
-    # plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs,num_fc_layers, DIRECTORYMODEL)
-    #
-    # best_epoch_val = max(val_accuracies)
-    # best_epoch = val_accuracies.index(best_epoch_val)
-    #
-    # model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
-    # score_cam(model_path, val_loader, device, [0,100,200,300,400,500,600,700,800,900], num_classes, DIRECTORYMODEL)
+    best_epoch_val = max(val_accuracies)
+    best_epoch = val_accuracies.index(best_epoch_val)
+
+    write_metrics(train_accuracies, val_accuracies, train_losses, best_epoch, DIRECTORYMODEL)
+
+    plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs,num_fc_layers, DIRECTORYMODEL)
+
+
+    model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
+    score_cam(model, model_path, val_loader, data_dir, device, [0,1,2,3,4,5,6,7,8,9], DIRECTORYMODEL)
 
     # # For each model, repeat the following steps
     # model_name ='supervised'
@@ -217,59 +215,55 @@ if __name__ == '__main__':
     # plt.axis('off')
     # plt.title(f'Inverted Image for Filter {selected_filter}')
     # plt.show()
-    model_path = os.path.join(DIRECTORYMODEL, f'model{6}.pth')
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{6}.pth')
+    # #
+    # model.load_state_dict(torch.load(model_path), strict=True)
+    # model.eval()
+    # model.to('cpu')
     #
-    model.load_state_dict(torch.load(model_path), strict=True)
-    model.eval()
-    model.to('cpu')
+    # import torch
+    # import torch.nn as nn
+    # import numpy as np
+    # import matplotlib.pyplot as plt
+    #
+    # # Select the last convolutional layer and the corresponding SiLU activation layer
+    # conv_layer = model.features[8][1]
+    # # Get the weights of the selected convolutional layer
+    # conv_weights = conv_layer.weight.data
+    #
+    # # Sum up the weights along each filter
+    # filter_weights_sum = conv_weights.view(conv_weights.size(0), -1).sum(dim=1)
+    #
+    # indexed_list = list(enumerate(filter_weights_sum))  # Create a list of (index, value) pairs
+    # sorted_indexed_list = sorted(indexed_list, key=lambda x: x[1], reverse=True)  # Sort by value in descending order
+    # top_filters_indices = [index for index, _ in sorted_indexed_list[:5]]  # Get the indexes of the first 5 elements
+    #
+    # class Identity(nn.Module):
+    #     def __init__(self):
+    #         super(Identity, self).__init__()
+    #
+    #     def forward(self, x):
+    #         return x
+    # import os
+    # import numpy as np
+    # from PIL import Image, ImageFilter
+    #
+    # import torch
+    # from torch.optim import SGD
+    # from torch.autograd import Variable
+    # from torchvision import models
+    #
+    # from misc_functions import recreate_image, save_image
+    # from RegularizedUnitSpecificImageGeneration import RegularizedClassSpecificImageGeneration
+    #
+    # target_class = 0  # Flamingo
+    # newmodel = torch.nn.Sequential(*(list(model.children())[:-2]))
+    #
+    # # print(newmodel)
+    # pretrained_model = newmodel
+    # csig = RegularizedClassSpecificImageGeneration(pretrained_model, top_filters_indices)
+    # csig.generate()
 
-    import torch
-    import torch.nn as nn
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    # Select the last convolutional layer and the corresponding SiLU activation layer
-    conv_layer = model.features[8][1]
-    # Get the weights of the selected convolutional layer
-    conv_weights = conv_layer.weight.data
-
-    # Sum up the weights along each filter
-    filter_weights_sum = conv_weights.view(conv_weights.size(0), -1).sum(dim=1)
-
-    indexed_list = list(enumerate(filter_weights_sum))  # Create a list of (index, value) pairs
-    sorted_indexed_list = sorted(indexed_list, key=lambda x: x[1], reverse=True)  # Sort by value in descending order
-    top_filters_indices = [index for index, _ in sorted_indexed_list[:5]]  # Get the indexes of the first 5 elements
-
-    class Identity(nn.Module):
-        def __init__(self):
-            super(Identity, self).__init__()
-
-        def forward(self, x):
-            return x
-    import os
-    import numpy as np
-    from PIL import Image, ImageFilter
-
-    import torch
-    from torch.optim import SGD
-    from torch.autograd import Variable
-    from torchvision import models
-
-    from misc_functions import recreate_image, save_image
-    from RegularizedUnitSpecificImageGeneration import RegularizedClassSpecificImageGeneration
-
-    target_class = 0  # Flamingo
-    newmodel = torch.nn.Sequential(*(list(model.children())[:-2]))
-
-    # print(newmodel)
-    pretrained_model = newmodel
-    csig = RegularizedClassSpecificImageGeneration(pretrained_model, top_filters_indices[0])
-    image = csig.generate()
-    plt.imshow(image.to("cpu"))
-    # plt.imshow(np.transpose(image[0], (1, 2, 0)))
-    plt.axis('off')
-    plt.title('Combined Top 5 Filters')
-    plt.show()
 
     # model_path = os.path.join(DIRECTORYMODEL, f'model{6}.pth')
     #

@@ -21,14 +21,19 @@ from PIL import Image
 import os
 
 # Function to load datasets and data loaders
-def load_datasets_in_loaders(data_dir, batch_size):
+def load_datasets_in_loaders(data_dir, batch_size, transform_class=None):
 
     transform = models.EfficientNet_B0_Weights.IMAGENET1K_V1.transforms()
 
     train_dataset = ImageFolder(os.path.join(data_dir, "train"), transform=transform)
+    if transform_class is not None:
+        train_dataset = transform_class(train_dataset)
+
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     val_dataset = ImageFolder(os.path.join(data_dir, "validation"), transform=transform)
+    if transform_class is not None:
+        val_dataset = transform_class(val_dataset)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     return train_loader, val_loader
@@ -56,10 +61,11 @@ def create_model(num_classes,  num_fc_layers=0, fc_hidden_units=256):
 
     return model
 
-def write_metrics(train_accuracies, val_accuracies,train_losses, plot_path):
+def write_metrics(train_accuracies, val_accuracies,train_losses, best_epoch, plot_path):
     epochs = len(val_accuracies)
     with open(os.path.join(plot_path, 'training_metrics.txt'), 'w') as file:
-        file.write("Epoch\tValidation Accuracy\n")
+        file.write(f"Best Epoch for Validation Accuracy = {best_epoch}\n")
+        file.write("\nEpoch\tValidation Accuracy\n")
         for epoch in range(epochs):
             file.write(
                 f"{epoch + 1}\t{val_accuracies[epoch]:.4f}\n")
@@ -97,7 +103,7 @@ def plot_metrics(train_accuracies, val_accuracies,train_losses, batch_size, lear
     plt.grid(True)
 
     # Save the plot as a PNG image
-    plot_path = os.path.join(plot_path, f'metrics_plot_bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}_fc{num_fc_layers}.png')
+    plot_path = os.path.join(plot_path, f'metrics_plot_bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs+1}_fc{num_fc_layers}.png')
     plt.savefig(plot_path, dpi=300)
     print(f"Metrics plot saved as {plot_path}")
     plt.show()
