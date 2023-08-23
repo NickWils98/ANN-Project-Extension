@@ -48,7 +48,7 @@ class RotationDataset(torch.utils.data.Dataset):
 num_classes = 4
 batch_size = 8
 num_epochs = 10
-learning_rate = 0.0005
+learning_rate = 0.001
 num_fc_layers = 0
 fc_hidden_units = 256
 
