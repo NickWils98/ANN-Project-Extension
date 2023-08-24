@@ -1,0 +1,16 @@
+Best Epoch for Validation Accuracy = 2
+
+Epoch	Validation Accuracy
+1	0.4389
+2	0.5467
+3	0.6204
+
+Epoch	Training Accuracy
+1	0.3000
+2	0.5013
+3	0.5833
+
+Epoch	Loss
+1	2.2226
+2	1.6947
+3	1.4514
