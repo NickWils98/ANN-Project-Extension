@@ -55,7 +55,7 @@ def create_model(num_classes,  num_fc_layers=0, fc_hidden_units=256):
 
         fc_layers.append(nn.Linear(fc_hidden_units, num_classes))
         model.classifier[1] = nn.Sequential(*fc_layers)
-    print(model)
+
     for param in model.parameters():
         param.requires_grad = True
 
