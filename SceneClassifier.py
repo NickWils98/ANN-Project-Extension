@@ -31,33 +31,33 @@ import os
 import warnings
 
 
-old_num_classes = 4
+old_num_classes = 2
 old_batch_size = 16
 old_learning_rate = 0.001
-old_num_fc_layers = 1
+old_num_fc_layers = 0
 old_fc_hidden_units = 256
-old_epoch_num = 9
+old_epoch_num = 2
 
 # OLDDIRECTORYMODEL = os.path.join("rotation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}")
-OLDDIRECTORYMODEL = os.path.join("rotation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}fc{old_num_fc_layers}")
+# OLDDIRECTORYMODEL = os.path.join("rotation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}fc{old_num_fc_layers}")
 
-# OLDDIRECTORYMODEL = os.path.join("perturbation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}")
+OLDDIRECTORYMODEL = os.path.join("perturbation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}")
 # OLDDIRECTORYMODEL = os.path.join("perturbation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}fc{old_num_fc_layers}")
 
 
 
 num_classes = 15
-batch_size = 32
-num_epochs = old_epoch_num+1
+batch_size = 16
+num_epochs = 10
 learning_rate = 0.001
 num_fc_layers = 0
 fc_hidden_units = 256
 
-DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}oldfc1")
-# DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}oldfc1fc{num_fc_layers}")
+# DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}oldfc1")
+# DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}oldfc1fc{num_fc_layers}")
 
-# DIRECTORYMODEL = os.path.join("scene_perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
-# DIRECTORYMODEL = os.path.join("scene_perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
+DIRECTORYMODEL = os.path.join("scene_perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}")
+# DIRECTORYMODEL = os.path.join("scene_perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}fc{num_fc_layers}")
 
 # Function to create and configure the model
 def load_model(model, model_path, num_fc_layers=0, fc_hidden_units=256):
@@ -185,4 +185,4 @@ if __name__ == '__main__':
 
     model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
     # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
-    score_cam(model, model_path, val_loader, data_dir, device, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], DIRECTORYMODEL)
+    # score_cam(model, model_path, val_loader, data_dir, device, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], DIRECTORYMODEL)

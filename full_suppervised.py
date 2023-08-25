@@ -9,12 +9,12 @@ import os
 num_classes = 15
 batch_size = 32
 num_epochs = 10
-learning_rate = 0.0005
-num_fc_layers = 2
+learning_rate = 0.001
+num_fc_layers = 0
 fc_hidden_units = 256
 
-# DIRECTORYMODEL = os.path.join("fully-supervised", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
-DIRECTORYMODEL = os.path.join("fully-supervised", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
+DIRECTORYMODEL = os.path.join("fully-supervised", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
+# DIRECTORYMODEL = os.path.join("fully-supervised", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
 
 
 # Function to train the model
@@ -56,7 +56,8 @@ def train_model(model, train_loader, val_loader, num_epochs, device, optimizer, 
         val_accuracy = evaluate_model(model, val_loader, device)
         val_accuracies.append(val_accuracy)
         model_save_path = os.path.join(DIRECTORYMODEL, f'model{epoch}.pth')
-        torch.save(model.state_dict(), model_save_path)
+        if(epoch>15):
+            torch.save(model.state_dict(), model_save_path)
     return train_accuracies, val_accuracies, train_losses
 
 
@@ -96,20 +97,43 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    train_accuracies, val_accuracies, train_losses = train_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
+    # train_accuracies, val_accuracies, train_losses = train_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
+    #
+    # best_epoch_val = max(val_accuracies)
+    # best_epoch = val_accuracies.index(best_epoch_val)
+    #
+    # write_metrics(train_accuracies, val_accuracies, train_losses, best_epoch, DIRECTORYMODEL)
+    #
+    # plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs,num_fc_layers, DIRECTORYMODEL)
 
-    best_epoch_val = max(val_accuracies)
-    best_epoch = val_accuracies.index(best_epoch_val)
+    #
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{19}.pth')
+    # # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
+    # score_cam(model, model_path, val_loader, data_dir, device, [0,1,2,3,4,5,6,7,8,9], DIRECTORYMODEL)
 
-    write_metrics(train_accuracies, val_accuracies, train_losses, best_epoch, DIRECTORYMODEL)
+    model_path = os.path.join(DIRECTORYMODEL, f'model{9}.pth')
 
-    plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs,num_fc_layers, DIRECTORYMODEL)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
 
+    # Select the last convolutional layer and the corresponding SiLU activation layer
+    conv_layer = model.features[8][0]
+    # Get the weights of the selected convolutional layer
+    conv_weights = conv_layer.weight.data
 
-    model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
-    # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
-    score_cam(model, model_path, val_loader, data_dir, device, [0,1,2,3,4,5,6,7,8,9], DIRECTORYMODEL)
+    # Sum up the weights along each filter
+    filter_weights_sum = conv_weights.view(conv_weights.size(0), -1).sum(dim=1)
 
+    indexed_list = list(enumerate(filter_weights_sum))
+    sorted_indexed_list = sorted(indexed_list, key=lambda x: x[1], reverse=True)
+    top_filters_indices = [index for index, _ in sorted_indexed_list[:5]]
+
+    newmodel = torch.nn.Sequential(*(list(model.children())[:-2]))
+
+    from RegularizedUnitSpecificImageGeneration import RegularizedClassSpecificImageGeneration
+
+    csig = RegularizedClassSpecificImageGeneration(model, 0)
+    csig.generate()
     # # For each model, repeat the following steps
     # model_name ='supervised'
     # print(f"Running model inversion for {model_name} model")
