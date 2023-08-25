@@ -25,38 +25,39 @@ import matplotlib.pyplot as plt
 from torchvision.transforms import ToPILImage
 # Create a custom transformation for rotation classification
 from ScoreCam import score_cam
+from ModelInversion import model_inversion
 from ModelFunctions import *
 import os
 
 import warnings
 
 
-old_num_classes = 2
+old_num_classes = 4
 old_batch_size = 16
 old_learning_rate = 0.001
 old_num_fc_layers = 0
 old_fc_hidden_units = 256
 old_epoch_num = 2
 
-# OLDDIRECTORYMODEL = os.path.join("rotation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}")
+OLDDIRECTORYMODEL = os.path.join("rotation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}")
 # OLDDIRECTORYMODEL = os.path.join("rotation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}fc{old_num_fc_layers}")
 
-OLDDIRECTORYMODEL = os.path.join("perturbation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}")
+# OLDDIRECTORYMODEL = os.path.join("perturbation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}")
 # OLDDIRECTORYMODEL = os.path.join("perturbation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}fc{old_num_fc_layers}")
 
 
 
 num_classes = 15
-batch_size = 16
+batch_size = 32
 num_epochs = 10
 learning_rate = 0.001
 num_fc_layers = 0
 fc_hidden_units = 256
 
-# DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}oldfc1")
+DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{10}")
 # DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}oldfc1fc{num_fc_layers}")
 
-DIRECTORYMODEL = os.path.join("scene_perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}")
+# DIRECTORYMODEL = os.path.join("scene_perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}")
 # DIRECTORYMODEL = os.path.join("scene_perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}fc{num_fc_layers}")
 
 # Function to create and configure the model
@@ -173,16 +174,21 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=learning_rate)
 
-    train_accuracies, val_accuracies, train_losses = train_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
+    # train_accuracies, val_accuracies, train_losses = train_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
+    #
+    # best_epoch_val = max(val_accuracies)
+    # best_epoch = val_accuracies.index(best_epoch_val)
+    #
+    # write_metrics(train_accuracies, val_accuracies, train_losses, best_epoch, DIRECTORYMODEL)
+    #
+    # plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs, num_fc_layers,
+    #              DIRECTORYMODEL)
+    #
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
+    # # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
+    # # score_cam(model, model_path, val_loader, data_dir, device, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], DIRECTORYMODEL)
 
-    best_epoch_val = max(val_accuracies)
-    best_epoch = val_accuracies.index(best_epoch_val)
+    model_path = os.path.join(DIRECTORYMODEL, f'model{9}.pth')
 
-    write_metrics(train_accuracies, val_accuracies, train_losses, best_epoch, DIRECTORYMODEL)
+    model_inversion(model, model_path, 150, "scene_rotation")
 
-    plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs, num_fc_layers,
-                 DIRECTORYMODEL)
-
-    model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
-    # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
-    # score_cam(model, model_path, val_loader, data_dir, device, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], DIRECTORYMODEL)

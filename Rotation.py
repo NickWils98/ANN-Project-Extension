@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from torchvision.transforms import ToPILImage
 import warnings
 from ScoreCam import score_cam_batch
+from ModelInversion import model_inversion
 from ModelFunctions import *
 import os
 
@@ -49,11 +50,11 @@ num_classes = 4
 batch_size = 16
 num_epochs = 10
 learning_rate = 0.001
-num_fc_layers = 1
+num_fc_layers = 0
 fc_hidden_units = 256
 
-# DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
-DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
+DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
+# DIRECTORYMODEL = os.path.join("rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
 
 
 
@@ -169,16 +170,20 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    train_accuracies, val_accuracies, train_losses = train_rotation_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
+    # train_accuracies, val_accuracies, train_losses = train_rotation_model(model, train_loader, val_loader, num_epochs, device, optimizer, criterion)
+    #
+    # best_epoch_val = max(val_accuracies)
+    # best_epoch = val_accuracies.index(best_epoch_val)
+    #
+    # write_metrics(train_accuracies, val_accuracies, train_losses, best_epoch, DIRECTORYMODEL)
+    #
+    # plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs, num_fc_layers,
+    #              DIRECTORYMODEL)
+    #
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
+    # # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
+    # score_cam_batch(model, model_path, val_loader, device, [0,1,2,3,4], DIRECTORYMODEL, 1)
 
-    best_epoch_val = max(val_accuracies)
-    best_epoch = val_accuracies.index(best_epoch_val)
+    model_path = os.path.join(DIRECTORYMODEL, f'model{9}.pth')
 
-    write_metrics(train_accuracies, val_accuracies, train_losses, best_epoch, DIRECTORYMODEL)
-
-    plot_metrics(train_accuracies, val_accuracies, train_losses, batch_size, learning_rate, num_epochs, num_fc_layers,
-                 DIRECTORYMODEL)
-
-    model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
-    # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
-    score_cam_batch(model, model_path, val_loader, device, [0,1,2,3,4], DIRECTORYMODEL, 1)
+    model_inversion(model, model_path, 500, "rotation")

@@ -55,6 +55,7 @@ import warnings
 from ScoreCam import score_cam_batch
 from ModelFunctions import *
 import os
+from ModelInversion import model_inversion
 
 import random
 
@@ -105,11 +106,11 @@ num_classes = 2
 batch_size = 16
 num_epochs = 10
 learning_rate = 0.001
-num_fc_layers = 1
+num_fc_layers = 0
 fc_hidden_units = 256
 
-# DIRECTORYMODEL = os.path.join("perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
-DIRECTORYMODEL = os.path.join("perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
+DIRECTORYMODEL = os.path.join("perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}")
+# DIRECTORYMODEL = os.path.join("perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{num_epochs}fc{num_fc_layers}")
 
 
 
@@ -238,3 +239,8 @@ if __name__ == '__main__':
     model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
     # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
     score_cam_batch(model, model_path, val_loader, device, [0,1,2,3,4], DIRECTORYMODEL, 0)
+
+    model_path = os.path.join(DIRECTORYMODEL, f'model{9}.pth')
+
+    model_inversion(model, model_path, 500, "perturbation")
+
