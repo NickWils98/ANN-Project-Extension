@@ -35,7 +35,7 @@ class RotationDataset(torch.utils.data.Dataset):
 # Parameters
 num_classes = 4
 batch_size = 16
-num_epochs = 100
+num_epochs = 10
 learning_rate = 0.0005
 num_fc_layers = 0
 fc_hidden_units = 256
@@ -187,10 +187,10 @@ if __name__ == '__main__':
                  DIRECTORYMODEL)
 
     # make scoreCAM
-    # model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
-    model_path = os.path.join(DIRECTORYMODEL, f'model{19}.pth')
+    model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{9}.pth')
     score_cam_batch(model, model_path, val_loader, device, [0, 1, 2, 3, 4], DIRECTORYMODEL, 1)
 
     # make model inversion
-    model_path = os.path.join(DIRECTORYMODEL, f'model{19}.pth')
-    model_inversion(model, model_path, 500, "rotation")
+    model_path = os.path.join(DIRECTORYMODEL, f'model{9}.pth')
+    model_inversion(model, model_path, 1500, "rotation39")

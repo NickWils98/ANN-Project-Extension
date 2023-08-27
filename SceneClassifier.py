@@ -15,13 +15,14 @@ old_num_fc_layers = 0
 old_fc_hidden_units = 256
 old_epoch_num = 2
 
-# Directory to save models and plots old Perturbation
+# Directory to save models and plots old Rotation
 OLDDIRECTORYMODEL = os.path.join("rotation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}")
 # OLDDIRECTORYMODEL = os.path.join("rotation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}fc{old_num_fc_layers}")
 
-# Directory to save models and plots old Rotation
+# Directory to save models and plots old Perturbation
 # OLDDIRECTORYMODEL = os.path.join("perturbation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}")
 # OLDDIRECTORYMODEL = os.path.join("perturbation", f"bs{old_batch_size}_lr{str(old_learning_rate)[2:]}_epochs{10}fc{old_num_fc_layers}")
+
 
 
 # Parameters scene classifier
@@ -32,11 +33,11 @@ learning_rate = 0.001
 num_fc_layers = 0
 fc_hidden_units = 256
 
-# Directory to save models and plots Perturbation
-DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{10}")
-# DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}oldfc1fc{num_fc_layers}")
-
 # Directory to save models and plots Rotation
+DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{10}")
+# DIRECTORYMODEL = os.path.join("scene_rotation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}fc{num_fc_layers}")
+
+# Directory to save models and plots Perturbation
 # DIRECTORYMODEL = os.path.join("scene_perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}")
 # DIRECTORYMODEL = os.path.join("scene_perturbation", f"bs{batch_size}_lr{str(learning_rate)[2:]}_epochs{3}fc{num_fc_layers}")
 
@@ -192,10 +193,10 @@ if __name__ == '__main__':
                  DIRECTORYMODEL)
 
     # make scoreCAM
-    model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
-    # model_path = os.path.join(DIRECTORYMODEL, f'model{4}.pth')
-    score_cam(model, model_path, val_loader, data_dir, device, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], DIRECTORYMODEL)
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
+    model_path = os.path.join(DIRECTORYMODEL, f'model{9}.pth')
+    score_cam(model, model_path, val_loader, data_dir, device, [13,907,1004,1205,1606, 1806,2500,2700], DIRECTORYMODEL)
 
-    # make model inversion
+    # # make model inversion
     model_path = os.path.join(DIRECTORYMODEL, f'model{9}.pth')
     model_inversion(model, model_path, 150, "scene_rotation")

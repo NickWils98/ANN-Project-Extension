@@ -30,6 +30,8 @@ def score_cam_batch(model, model_path, val_loader, device, image_list, plot_path
 
     # go over all images
     for batch_rotated_images, labels in val_loader:
+
+        labelcounter = 0
         all_images = []
         rotated_labels = []
         # go over all images in batch
@@ -52,7 +54,8 @@ def score_cam_batch(model, model_path, val_loader, device, image_list, plot_path
                         # get run image through the model
                         outputs = model(image)
                         x, predicted_class = torch.max(outputs.data, 1)
-                    print(f'index: {counter}, true label: {labels[counter][batch_nr]}, guess: {predicted_class.item()}')
+                    if i == 0:
+                        print(f'index: {counter}, true label: {labels[labelcounter][batch_nr]}, guess: {predicted_class.item()}')
 
                     # Forward the image through the model to hook into the convolutional features
                     # Generate heatmap using Score-CAM
@@ -75,6 +78,8 @@ def score_cam_batch(model, model_path, val_loader, device, image_list, plot_path
                 if len(image_list) == 0:
                     return
             counter += 1
+            labelcounter += 1
+
 
 
 # Function to calculate the ScoreCAM
@@ -124,7 +129,8 @@ def score_cam(model, model_path, val_loader, orignal_data, device, image_list, p
                         # get run image through the model
                         outputs = model(image)
                         x, predicted_class = torch.max(outputs.data, 1)
-                    print(f'index: {counter}, true label: {labels[labelcounter]}, guess: {predicted_class.item()}')
+                    if i == 0:
+                        print(f'index: {counter}, true label: {labels[labelcounter]}, guess: {predicted_class.item()}')
 
                     # Generate heatmap using Score-CAM
                     heatmap = scorecam(predicted_class.item(), predicted_class)
@@ -134,7 +140,7 @@ def score_cam(model, model_path, val_loader, orignal_data, device, image_list, p
                         plt.subplot(1, len(target_layers), i + 1)
                         plt.imshow(result)
                         plt.axis('off')
-                        plt.title(f'Layer {target_layer + 1}')
+                        plt.title(f'Layer {target_layer}')
                     scorecam.remove_hooks()
                 plt.tight_layout()
                 # show and save the image

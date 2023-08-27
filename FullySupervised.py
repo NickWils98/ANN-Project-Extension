@@ -130,10 +130,10 @@ if __name__ == '__main__':
                  DIRECTORYMODEL)
 
     # make scoreCAM
-    model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
-    # model_path = os.path.join(DIRECTORYMODEL, f'model{3}.pth')
-    score_cam(model, model_path, val_loader, data_dir, device, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], DIRECTORYMODEL)
+    # model_path = os.path.join(DIRECTORYMODEL, f'model{best_epoch}.pth')
+    model_path = os.path.join(DIRECTORYMODEL, f'model{3}.pth')
+    score_cam(model, model_path, val_loader, data_dir, device, [13,907,1004,1205,1606, 1806,2500,2700], DIRECTORYMODEL)
 
     # make model inversion
-    model_path = os.path.join(DIRECTORYMODEL, f'model{74}.pth')
-    model_inversion(model, model_path, 1500, "fully9")
+    model_path = os.path.join(DIRECTORYMODEL, f'model{9}.pth')
+    model_inversion(model, model_path, 1500, "fully75")
