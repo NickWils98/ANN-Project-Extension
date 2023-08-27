@@ -1,5 +1,3 @@
-import warnings
-
 import torch
 import torch.optim as optim
 
@@ -94,7 +92,6 @@ def evaluate_model(model, val_loader, device):
 
 
 if __name__ == '__main__':
-    warnings.filterwarnings("ignore")
     # Make the subdirectory if it doesn't exist yet
     if not os.path.exists(DIRECTORYMODEL):
         os.makedirs(DIRECTORYMODEL)
